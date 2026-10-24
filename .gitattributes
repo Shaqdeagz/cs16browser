@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Specta emits LF bytes; its freshness test compares the generated file exactly.
+src/lib/bindings.ts text eol=lf

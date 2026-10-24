@@ -29,10 +29,9 @@ jobs:
       - run: npm run site:check
       - name: Rust unit and HTTP contract tests
         id: rust-tests
-        continue-on-error: true
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml
       - name: Diagnose test executable imports
-        if: steps.rust-tests.outcome == 'failure'
+        if: failure() && steps.rust-tests.outcome == 'failure'
         run: |
           python -m pip install pefile
           python scripts/check-pe-imports.py
@@ -54,6 +53,3 @@ jobs:
           path: |
             src-tauri/target/debug/deps/cs16browser_lib-*.exe
             src-tauri/target/x86_64-pc-windows-msvc/release/cs16browser.exe
-      - name: Require passing Rust tests
-        if: steps.rust-tests.outcome == 'failure'
-        run: throw 'Rust tests failed; diagnostic binaries retained'
