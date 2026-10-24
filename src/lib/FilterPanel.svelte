@@ -48,7 +48,9 @@
             : undefined}
           maxlength={field.id === "name" ? 128 : field.id === "game" ? 128 : 64}
           spellcheck="false"
-          title="Comma-separated words: text includes; !text excludes (e.g. !www,!discord)"
+          title={field.id === "map"
+            ? "Case-insensitive map substring"
+            : "Comma-separated words: text includes; !text excludes (e.g. !www,!discord)"}
           oninput={(e) => {
             store.ui.discovery[field.id] = e.currentTarget.value;
             store.recompute();

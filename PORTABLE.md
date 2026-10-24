@@ -25,7 +25,8 @@ Both automatic and manual upstream updates are disabled.
 
 Fake-server, redirect, bot-plugin and player-count heuristics are preserved.
 Passing checks does not guarantee real human players; servers can misreport.
-Defaults hide bots, empty/full/passworded servers and high-ping servers.
+Defaults show secure servers below 100 ms; the optional checkboxes can hide
+bots, empty/full/passworded servers.
 Adjust filters if the list looks unexpectedly small.
 
 SOURCE.txt identifies the corresponding GPL-3.0-or-later source, also included
