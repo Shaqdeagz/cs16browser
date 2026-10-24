@@ -124,11 +124,12 @@
     <div class="section-heading updates-heading">Updates</div>
     <div class="setting-row">
       <label class="checkbox-label"
-        ><input type="checkbox" bind:checked={autoUpdate} /> Check for updates when the app starts</label
+        ><input type="checkbox" bind:checked={autoUpdate} disabled /> Updates disabled for this portable
+        build</label
       >
     </div>
     <div class="setting-row">
-      <button class="vbtn check" onclick={() => void checkUpdate()} disabled={checking}
+      <button class="vbtn check" onclick={() => void checkUpdate()} disabled={true}
         >{checking ? "Checking..." : "Check for updates"}</button
       >
       {#if update}<button

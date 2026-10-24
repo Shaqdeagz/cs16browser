@@ -403,6 +403,6 @@ html, body {
 }
 @media (max-width: 1150px) {
   .filtergrid { grid-template-columns: 447px; row-gap: 6px; }
-  .checks { position: absolute; left: 44px; right: auto; top: 150px; }
+  .checks { position: absolute; left: 475px; right: auto; top: 15px; }
   .app { --panel-h: 420px; }
 }

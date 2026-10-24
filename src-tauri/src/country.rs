@@ -104,7 +104,8 @@ pub fn from_rules(rules: &[(String, String)]) -> Option<&'static str> {
 }
 
 pub fn resolve(ip: Ipv4Addr, rules: Option<&[(String, String)]>) -> Option<&'static str> {
-    rules.and_then(from_rules).or_else(|| from_ip(ip))
+    let _ = rules;
+    from_ip(ip)
 }
 
 fn valid_code(code: &str) -> bool {
@@ -116,7 +117,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn language_wins_only_when_recognized() {
+    fn ip_geolocation_preferred_over_server_language() {
         assert_eq!(
             from_rules(&[("AMX_LANGUAGE".into(), " bp ".into())]),
             Some("BR")
@@ -126,7 +127,7 @@ mod tests {
         let ip = "8.8.8.8".parse().unwrap();
         assert_eq!(
             resolve(ip, Some(&[("amx_language".into(), "pl".into())])),
-            Some("PL")
+            Some("US")
         );
         assert_eq!(
             resolve(ip, Some(&[("amx_language".into(), "???".into())])),

@@ -11,7 +11,7 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SITE = {
-  repo: "vuxsoftware/cs16browser",
+  repo: "Shaqdeagz/cs16browser",
 };
 
 const docs = join(dirname(fileURLToPath(import.meta.url)), "..", "docs");

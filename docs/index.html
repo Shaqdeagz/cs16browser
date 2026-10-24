@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="./style.css">
     <script src="./site.js" defer></script>
   </head>
-  <body data-repository="vuxsoftware/cs16browser">
+  <body data-repository="Shaqdeagz/cs16browser">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header" id="top">
       <div class="shell header-inner">
@@ -25,7 +25,7 @@
           <a href="#features">Features</a>
           <a href="#faq">FAQ</a>
           <a href="#download">Download</a>
-          <a class="github-stars" href="https://github.com/vuxsoftware/cs16browser" aria-label="cs16browser on GitHub">
+          <a class="github-stars" href="https://github.com/Shaqdeagz/cs16browser" aria-label="cs16browser on GitHub">
             <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 .8a11.2 11.2 0 0 0-3.54 21.82c.56.1.77-.24.77-.54v-2.09c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.68.08-.68 1.13.08 1.72 1.16 1.72 1.16 1 .72 2.62.51 3.26.39.1-.72.39-1.2.71-1.48-2.5-.28-5.13-1.25-5.13-5.56 0-1.23.44-2.24 1.16-3.03-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.16A10.7 10.7 0 0 1 12 6.37c.95 0 1.9.13 2.79.38 2.13-1.45 3.07-1.16 3.07-1.16.62 1.55.24 2.7.12 2.98.72.79 1.15 1.8 1.15 3.03 0 4.32-2.63 5.27-5.14 5.55.4.35.75 1.02.75 2.06v2.87c0 .3.2.65.78.54A11.2 11.2 0 0 0 12 .8Z"/></svg>
             <span>GitHub</span><span class="star-divider" aria-hidden="true"></span><span aria-hidden="true">★</span><strong id="star-count">—</strong>
           </a>
@@ -40,7 +40,7 @@
           <h1 id="hero-title">Skip the fake servers.<br><span>Find a real game.</span></h1>
           <p class="hero-lede">Steam's Counter-Strike 1.6 list is flooded with fake and redirect servers. cs16browser checks every server before showing it, so the list only has servers you can actually play on.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="https://github.com/vuxsoftware/cs16browser/releases/latest" data-download>Download for Windows <span aria-hidden="true">↓</span></a>
+            <a class="button button-primary" href="https://github.com/Shaqdeagz/cs16browser/releases/latest" data-download>Download for Windows <span aria-hidden="true">↓</span></a>
             <a class="button" href="#problem">Why you need it</a>
           </div>
           <p class="hero-meta">Windows 10 and 11, 64-bit<span data-version-line hidden> · <span data-version></span></span></p>
@@ -73,12 +73,12 @@
           <p>Keeping fakes out is the main job. The rest makes it pleasant to use every day.</p>
         </div>
         <div class="feature-grid">
-          <article class="feature"><span class="feature-symbol" aria-hidden="true">▣</span><h3>Feels like the original</h3><p>Familiar GoldSrc tabs and olive green chrome, with country flags beside server names. Flags use the server's AMX Mod X language when available, then an offline IP lookup.</p></article>
+          <article class="feature"><span class="feature-symbol" aria-hidden="true">▣</span><h3>Feels like the original</h3><p>Familiar GoldSrc tabs and olive green chrome, with country flags beside server names. Flags use an approximate offline IP country lookup. Right-click to filter by country or continent.</p></article>
           <article class="feature"><span class="feature-symbol" aria-hidden="true">☰</span><h3>See who's playing</h3><p>Open a server's info to see its players with their scores and time on the server, so you can tell a busy match from a quiet one before you join.</p></article>
-          <article class="feature"><span class="feature-symbol" aria-hidden="true">⌕</span><h3>Filters and search</h3><p>Filter by name, map, ping, anti-cheat, bots (including ones a bot plugin reports as players), full or empty servers and passwords. The list updates as you type.</p></article>
+          <article class="feature"><span class="feature-symbol" aria-hidden="true">⌕</span><h3>Filters and search</h3><p>Independent Name and Game filters accept exclusions such as !www,!discord,!VIP. Filter by map, ping, anti-cheat, bots (including ones a bot plugin reports as players), full or empty servers and passwords. The list updates as you type.</p></article>
           <article class="feature"><span class="feature-symbol" aria-hidden="true">★</span><h3>Favorites and history</h3><p>Right-click a server to keep it in Favorites. Every server you join lands in History, so last night's game is easy to find again.</p></article>
           <article class="feature"><span class="feature-symbol" aria-hidden="true">↵</span><h3>Quick to join</h3><p>Move with the arrow keys, then press <kbd>Enter</kbd> or double-click. Steam starts the game and connects you.</p></article>
-          <article class="feature"><span class="feature-symbol" aria-hidden="true">↻</span><h3>Updates itself</h3><p>When a new version is out, the app offers to install it and waits for your OK. Updates are signed, so only builds from this project get installed.</p></article>
+          <article class="feature"><span class="feature-symbol" aria-hidden="true">↻</span><h3>Custom portable build</h3><p>Extract the Windows x64 ZIP and run the EXE. Upstream updates are disabled to preserve these customizations.</p></article>
         </div>
       </section>
 
@@ -95,15 +95,15 @@
             </details>
             <details>
               <summary>What does the app send, and where?</summary>
-              <p>Your key, favorites, history and settings are stored on your PC. The key is sent only to Steam, to fetch the server list. The app then contacts each game server to check it, and GitHub to look for updates. You can turn the update check off in Settings. There's no account and no tracking.</p>
+              <p>Your key, favorites, history and settings are stored on your PC. The key is sent only to Steam, to fetch the server list. The app then contacts each game server to check it, without checking GitHub for updates in this portable build. There's no account and no tracking.</p>
             </details>
             <details>
               <summary>Do I need Counter-Strike 1.6 installed?</summary>
               <p>You can browse without it. To join a server you need Steam and Counter-Strike 1.6 in your library, because joining goes through Steam, just like it does from the game's own browser.</p>
             </details>
             <details id="smartscreen">
-              <summary>Windows says it protected my PC. Is the installer safe?</summary>
-              <p>The installer isn't signed with a paid code-signing certificate yet, so SmartScreen doesn't recognize it. Click <b>More info</b>, then <b>Run anyway</b>. The source code is public, and GitHub builds every release straight from it.</p>
+              <summary>Windows says it protected my PC. Is the application signed?</summary>
+              <p>The executable isn't signed with a paid code-signing certificate yet, so SmartScreen doesn't recognize it. Click <b>More info</b>, then <b>Run anyway</b>. The source code is public, and GitHub builds every release straight from it.</p>
             </details>
             <details>
               <summary>Won't all those checks flood the servers?</summary>
@@ -122,12 +122,12 @@
           <div class="download-main">
             <p class="eyebrow">04 / DOWNLOAD</p>
             <h2 id="download-title">Up and running in a few minutes.</h2>
-            <a class="button button-primary button-large" href="https://github.com/vuxsoftware/cs16browser/releases/latest" data-download>Download for Windows <span aria-hidden="true">↓</span></a>
+            <a class="button button-primary button-large" href="https://github.com/Shaqdeagz/cs16browser/releases/latest" data-download>Download portable ZIP <span aria-hidden="true">↓</span></a>
             <p class="download-meta">Windows 10 and 11, 64-bit<span data-version-line hidden> · <span data-version></span></span></p>
-            <p class="download-source">Prefer to build it yourself? The <a href="https://github.com/vuxsoftware/cs16browser">source code and build steps</a> are on GitHub.</p>
+            <p class="download-source">Prefer to build it yourself? The <a href="https://github.com/Shaqdeagz/cs16browser">source code and build steps</a> are on GitHub.</p>
           </div>
           <ol class="install-steps">
-            <li><h3>Run the installer</h3><p>If Windows shows a SmartScreen warning, <a href="#smartscreen">here's why</a>.</p></li>
+            <li><h3>Extract the ZIP and run cs16browser-portable.exe</h3><p>If Windows shows a SmartScreen warning, <a href="#smartscreen">here's why</a>.</p></li>
             <li><h3>Get a Steam Web API key</h3><p>It's free from <a href="https://steamcommunity.com/dev/apikey">Steam's API key page</a>.</p></li>
             <li><h3>Paste it into Settings</h3><p>Settings opens the first time you start the app. Save the key and the server list starts filling in.</p></li>
           </ol>

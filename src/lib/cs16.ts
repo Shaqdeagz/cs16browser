@@ -13,8 +13,8 @@
  */
 
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { check, type Update } from "@tauri-apps/plugin-updater";
-import { relaunch } from "@tauri-apps/plugin-process";
+import { type Update } from "@tauri-apps/plugin-updater";
+
 import { commands, events } from "./bindings";
 import type { BanRow, Event, PlayerRow, ScanConfig, ServerRow, SettingsView } from "./bindings";
 /* The mock is a classic script that assigns `window.cs16Mock`; importing it for
@@ -173,12 +173,12 @@ export const cs16: Backend = inTauri || !mock ? tauri : adaptMock(mock);
 /** A signed release is checked once on launch. Installation is explicit so a
  * server scan cannot be interrupted without the user's choice. */
 export async function availableUpdate(): Promise<Update | null> {
-  return inTauri ? check() : null;
+  return null; // Custom portable build never contacts upstream updates.
 }
 
 export async function installUpdate(update: Update): Promise<void> {
-  await update.downloadAndInstall();
-  await relaunch();
+  void update;
+  throw new Error("Updates are disabled in this custom portable build.");
 }
 
 /** Window chrome actions. The window is frameless, so the close, minimize and maximize

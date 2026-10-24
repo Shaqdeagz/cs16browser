@@ -1,17 +1,7 @@
-const KEY = "cs16browser.autoUpdate";
-
+/* Portable custom build: do not install upstream auto-updates over our changes. */
 export function autoUpdateEnabled(): boolean {
-  try {
-    return localStorage.getItem(KEY) !== "false";
-  } catch {
-    return true;
-  }
+  return false;
 }
-
-export function setAutoUpdateEnabled(enabled: boolean): void {
-  try {
-    localStorage.setItem(KEY, String(enabled));
-  } catch {
-    /* An unavailable storage area must not break Settings. */
-  }
+export function setAutoUpdateEnabled(_enabled: boolean): void {
+  /* Deliberately disabled for standalone build. */
 }

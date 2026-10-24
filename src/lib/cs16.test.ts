@@ -96,16 +96,14 @@ describe("backend boundary", () => {
     off();
   });
 
-  it("checks, installs and relaunches only when an update is available", async () => {
+  it("disables upstream updates even inside Tauri", async () => {
     (window as Window & { __TAURI__?: object }).__TAURI__ = {};
     const { check } = await import("@tauri-apps/plugin-updater");
-    const { relaunch } = await import("@tauri-apps/plugin-process");
-    const update = { version: "0.2.0", downloadAndInstall: vi.fn(async () => undefined) };
-    vi.mocked(check).mockResolvedValueOnce(update as never);
+    const update = { downloadAndInstall: vi.fn() };
     const { availableUpdate, installUpdate } = await import("./cs16");
-    expect(await availableUpdate()).toBe(update);
-    await installUpdate(update as never);
-    expect(update.downloadAndInstall).toHaveBeenCalledOnce();
-    expect(relaunch).toHaveBeenCalledOnce();
+    await expect(availableUpdate()).resolves.toBeNull();
+    await expect(installUpdate(update as never)).rejects.toThrow("disabled");
+    expect(check).not.toHaveBeenCalled();
+    expect(update.downloadAndInstall).not.toHaveBeenCalled();
   });
 });

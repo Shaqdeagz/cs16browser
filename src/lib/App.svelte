@@ -23,6 +23,7 @@
   import Settings from "$lib/Settings.svelte";
   import About from "$lib/About.svelte";
   import { autoUpdateEnabled } from "$lib/updatePreference";
+  import { continentFor } from "$lib/regions";
   import { onMount, tick } from "svelte";
 
   let flashTimer: ReturnType<typeof setTimeout> | undefined;
@@ -235,8 +236,8 @@
     const host = (event.currentTarget as HTMLElement).closest(".app")?.getBoundingClientRect();
     if (!host) return;
     ctx = {
-      left: event.clientX - host.left,
-      top: event.clientY - host.top,
+      left: Math.max(0, Math.min(event.clientX - host.left, host.width - 390)),
+      top: Math.max(0, Math.min(event.clientY - host.top, host.height - 356)),
       armed: 0,
       endpoint,
       tab: ui.tab,
@@ -260,15 +261,31 @@
       bannedTab
         ? { label: "Add to whitelist", disabled: !row }
         : { label: "Add to banned", disabled: !row },
+      { label: `Show only country: ${row?.country ?? "unknown"}`, disabled: !row?.country },
+      {
+        label: `Show only continent: ${continentFor(row?.country ?? null) ?? "unknown"}`,
+        disabled: !continentFor(row?.country ?? null),
+      },
+      { label: "Clear location filter", disabled: !ui.geoCountry && !ui.geoContinent },
     ];
   }
 
   function ctxPick(i: number): void {
     if (!ctx) return;
     const endpoint = ctx.endpoint;
-    const action = ctxItems()[i]?.label;
+    const item = ctxItems()[i];
+    if (!item || item.disabled) return;
+    const action = item.label;
     ctx = null;
-    if (action === "Connect to server") connectRow(endpoint);
+    if (action?.startsWith("Show only country: ")) {
+      const row = ui.rows[ui.index.get(endpoint) ?? -1];
+      if (row?.country) store.filterCountry(row.country);
+    } else if (action?.startsWith("Show only continent: ")) {
+      const row = ui.rows[ui.index.get(endpoint) ?? -1];
+      const continent = continentFor(row?.country ?? null);
+      if (continent) store.filterContinent(continent);
+    } else if (action === "Clear location filter") store.clearGeoFilter();
+    else if (action === "Connect to server") connectRow(endpoint);
     else if (action === "View server info") void showInfo(endpoint);
     else if (action === "Refresh server") {
       cs16.refreshServer(endpoint, true).catch((err: unknown) => flash(`paced: ${String(err)}`));
@@ -467,7 +484,7 @@
 
   function keydown(event: KeyboardEvent): void {
     if (ctx) {
-      const n = 4;
+      const n = ctxItems().length;
       if (event.key === "ArrowDown") {
         ctx.armed = (ctx.armed + 1) % n;
         event.preventDefault();

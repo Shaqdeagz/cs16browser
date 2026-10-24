@@ -1,128 +1,41 @@
-# Custom portable build of https://github.com/vuxsoftware/cs16browser
-# GPL-3.0-or-later. The customization script is embedded below in plain text.
-# This workflow does NOT install software on your computer or modify your Steam/CS 1.6 files.
-name: Build CS 1.6 Portable (custom filters)
-
+name: Custom portable Windows x64
 on:
   workflow_dispatch:
   push:
-    branches: [main]
-    paths: [.github/workflows/custom-portable.yml]
-
+    branches: [portable-custom]
 permissions:
   contents: read
-
 jobs:
   portable:
     runs-on: windows-2025
-    timeout-minutes: 75
+    timeout-minutes: 60
+    env:
+      RUSTFLAGS: -C target-feature=+crt-static
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
       - uses: dtolnay/rust-toolchain@stable
-      - uses: swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-      - name: Apply filters and portable changes from open-source patch
-        shell: bash
-        run: |
-          mkdir -p extras
-          cat > extras/customize.py <<'CUSTOM_PATCH_PY'
-          #!/usr/bin/env python3
-          """Apply the CS 1.6 Browser Portable customizations to vuxsoftware/cs16browser.
-          
-          For the 0.1.0 tree from 2026-10-24. Refuses unexpected upstream changes.
-          This script does not download, install, execute, or upload any binaries.
-          """
-          from __future__ import annotations
-          from pathlib import Path
-          import sys
-          
-          ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else '.').resolve()
-          
-          
-          def edit(relative: str, changes: list[tuple[str, str]]) -> None:
-              path = ROOT / relative
-              if not path.is_file():
-                  raise SystemExit(f"Missing upstream source: {path}")
-              text = path.read_text(encoding='utf-8')
-              for old, new in changes:
-                  n = text.count(old)
-                  if n != 1:
-                      raise SystemExit(f"Upstream source changed: {relative}; anchor occurred {n} times:\n{old[:180]}")
-                  text = text.replace(old, new)
-              path.write_text(text, encoding='utf-8')
-              print('Modified:', relative)
-          
-          
-          edit('src/lib/columns.ts', [
-              ('''  {
-              id: "secure",
-              label: "Anti-cheat",
-              items: OPT_SECURE,
-              width: "small",
-              wide: true,
-              text: false,
-              locked: false,
-            },
-          ] as const;''', '''  {
-              id: "secure",
-              label: "Anti-cheat",
-              items: OPT_SECURE,
-              width: "small",
-              wide: true,
-              text: false,
-              locked: false,
-            },
-            {
-              id: "game",
-              label: "Game",
-              items: [] as string[],
-              width: "game",
-              wide: false,
-              text: true,
-              locked: false,
-            },
-          ] as const;'''),
-          ])
-          
-          edit('src/lib/FilterPanel.svelte', [
-              ('placeholder={field.id === "name" ? "Contains..." : undefined}',
-               'placeholder={field.id === "name" || field.id === "game" ? "Contains... / !ads" : undefined}'),
-              ('maxlength={field.id === "name" ? 128 : 64}',
-               'maxlength={field.id === "name" ? 128 : field.id === "game" ? 128 : 64}'),
-              ('          spellcheck="false"\n',
-               '          spellcheck="false"\n          title="Comma-separated words: text includes; !text excludes (e.g. !www,!discord)"\n'),
-          ])
-          
-          edit('src/lib/store.svelte.ts', [
-              ('import { CHECKS, OPT_LATENCY, OPT_SECURE, ROW_H } from "./columns";',
-               'import { CHECKS, OPT_LATENCY, OPT_SECURE, ROW_H } from "./columns";\nimport { continentFor } from "./regions";'),
-              ('  discovery: Discovery;\n  checks: Checks;',
-               '''  discovery: Discovery;
-            checks: Checks;
-            geoCountry: string | null;
-            geoContinent: string | null;'''),
-              ('const FILTERS_KEY = "cs16browser.filters";',
-               'const FILTERS_KEY = "cs16browser.filters";\nconst GEO_KEY = "cs16browser.portable.geo";'),
-              ('const discovery: Discovery = { name: "", map: "", latency: "< 100", secure: "Secure" };',
-               'const discovery: Discovery = { name: "", map: "", game: "", latency: "< 100", secure: "Secure" };'),
-              ('    if (typeof d.name === "string") discovery.name = d.name.slice(0, 128);',
-               '    if (typeof d.name === "string") discovery.name = d.name.slice(0, 128);\n    if (typeof d.game === "string") discovery.game = d.game.slice(0, 128);'),
-              ('const filters = reviveFilters();', '''const filters = reviveFilters();
-          
-          function reviveGeo(): { country: string | null; continent: string | null } {
-            try {
-              const raw = JSON.parse(localStorage.getItem(GEO_KEY) ?? "null") as unknown;
-              if (!raw || typeof raw !== "object") return { country: null, continent: null };
-              const value = raw as { country?: unknown; continent?: unknown };
-              return {
-                country: typeof value.country === "string" && /^[A-Z]{2}$/.test(value.country)
-                  ? value.country : null,
-                continent: typeof value.continent === "string" &&
-                  ["North America", "South America", "Europe", "Asia", "Africa", "Oceania"].includes(value.continent)
-                  ? value.continent : null,
-              };
-            } catch {
-              return { country: null, continent: null };
-            }
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run lint
+      - run: npm run site:check
+      - name: Rust unit and HTTP contract tests
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - name: Compile standalone x64 executable
+        run: npm run tauri -- build --no-bundle --target x86_64-pc-windows-msvc
+      - name: Verify PE architecture, launch, and package
+        shell: pwsh
+        run: ./scripts/package-portable.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cs16browser-custom-portable-win64
+          path: cs16browser-custom-portable-win64.zip
+          if-no-files-found: error
+          retention-days: 90

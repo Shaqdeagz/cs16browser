@@ -13,6 +13,7 @@
  */
 
 import { CHECKS, OPT_LATENCY, OPT_SECURE, ROW_H } from "./columns";
+import { continentFor } from "./regions";
 import type { CellKey, CheckDef, ColumnWidths, FieldId, SortKey } from "./columns";
 import type { BanRow, Phase, ScanSummary, ServerRow } from "./bindings";
 
@@ -73,6 +74,8 @@ export interface UiState {
   sort: { key: SortKey; asc: boolean };
   discovery: Discovery;
   checks: Checks;
+  geoCountry: string | null;
+  geoContinent: string | null;
   phase: Phase;
   summary: ScanSummary | null;
   error: string | null;
@@ -93,9 +96,10 @@ export interface UiState {
  * checkbox off, Anti-cheat `Secure`, Latency `< 100>`.
  * Name and Map are case-insensitive substring filters. */
 const FILTERS_KEY = "cs16browser.filters";
+const GEO_KEY = "cs16browser.portable.geo";
 
 function reviveFilters(): { discovery: Discovery; checks: Checks } {
-  const discovery: Discovery = { name: "", map: "", latency: "< 100", secure: "Secure" };
+  const discovery: Discovery = { name: "", map: "", game: "", latency: "< 100", secure: "Secure" };
   const checks = Object.fromEntries(CHECKS.map((c) => [c.id, c.on])) as Checks;
   try {
     const raw = localStorage.getItem(FILTERS_KEY);
@@ -110,6 +114,7 @@ function reviveFilters(): { discovery: Discovery; checks: Checks } {
     if (typeof d.secure === "string" && OPT_SECURE.includes(d.secure)) discovery.secure = d.secure;
     if (typeof d.map === "string") discovery.map = d.map.slice(0, 64);
     if (typeof d.name === "string") discovery.name = d.name.slice(0, 128);
+    if (typeof d.game === "string") discovery.game = d.game.slice(0, 128);
     for (const c of CHECKS) {
       const v = saved.checks?.[c.id];
       if (typeof v === "boolean") checks[c.id] = v;
@@ -122,6 +127,30 @@ function reviveFilters(): { discovery: Discovery; checks: Checks } {
 
 const filters = reviveFilters();
 
+function reviveGeo(): { country: string | null; continent: string | null } {
+  try {
+    const raw = JSON.parse(localStorage.getItem(GEO_KEY) ?? "null") as unknown;
+    if (!raw || typeof raw !== "object") return { country: null, continent: null };
+    const value = raw as { country?: unknown; continent?: unknown };
+    return {
+      country:
+        typeof value.country === "string" && /^[A-Z]{2}$/.test(value.country)
+          ? value.country
+          : null,
+      continent:
+        typeof value.continent === "string" &&
+        ["North America", "South America", "Europe", "Asia", "Africa", "Oceania"].includes(
+          value.continent,
+        )
+          ? value.continent
+          : null,
+    };
+  } catch {
+    return { country: null, continent: null };
+  }
+}
+const geo = reviveGeo();
+
 export const ui: UiState = $state({
   rows: [],
   index: new Map<string, number>(),
@@ -130,6 +159,8 @@ export const ui: UiState = $state({
   sort: { key: "ping", asc: true },
   discovery: filters.discovery,
   checks: filters.checks,
+  geoCountry: geo.country,
+  geoContinent: geo.continent,
   phase: "idle",
   summary: null,
   error: null,
@@ -155,6 +186,7 @@ $effect.root(() => {
       discovery: {
         name: ui.discovery.name,
         map: ui.discovery.map,
+        game: ui.discovery.game,
         latency: ui.discovery.latency,
         secure: ui.discovery.secure,
       },
@@ -167,6 +199,36 @@ $effect.root(() => {
     }
   });
 });
+
+$effect.root(() => {
+  $effect(() => {
+    const country = ui.geoCountry;
+    const continent = ui.geoContinent;
+    try {
+      localStorage.setItem(GEO_KEY, JSON.stringify({ country, continent }));
+    } catch {
+      /* Best effort. */
+    }
+  });
+});
+
+export function filterCountry(country: string): void {
+  ui.geoCountry = country.toUpperCase();
+  ui.geoContinent = null;
+  recompute();
+}
+
+export function filterContinent(continent: string): void {
+  ui.geoCountry = null;
+  ui.geoContinent = continent;
+  recompute();
+}
+
+export function clearGeoFilter(): void {
+  ui.geoCountry = null;
+  ui.geoContinent = null;
+  recompute();
+}
 
 /** The Anti-cheat dropdown, applied to what the server itself reported: the
  * Web API's `secure` key only narrows Steam's list, and "Not secure" cannot be
@@ -199,10 +261,38 @@ function mapMatches(row: ServerRow): boolean {
   return !want || row.map.toLowerCase().includes(want);
 }
 
-/** The Name entry matches any case-insensitive part of the server hostname. */
+/** Both Name and Game use inclusive and negative keyword filters.
+ * e.g. `classic,!discord,!www` includes classic and excludes ads.
+ * Commas form OR among inclusive terms and AND among exclusions. */
+export function keywordMatches(value: string, input: string): boolean {
+  const terms = input
+    .split(",")
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+  const positives = terms.filter((part) => !part.startsWith("!"));
+  const negatives = terms
+    .filter((part) => part.startsWith("!"))
+    .map((part) => part.slice(1))
+    .filter(Boolean);
+  const haystack = value.toLowerCase();
+  return (
+    (positives.length === 0 || positives.some((term) => haystack.includes(term))) &&
+    negatives.every((term) => !haystack.includes(term))
+  );
+}
+
 function nameMatches(row: ServerRow): boolean {
-  const want = ui.discovery.name.trim().toLowerCase();
-  return !want || row.hostname.toLowerCase().includes(want);
+  return keywordMatches(row.hostname, ui.discovery.name);
+}
+
+function gameMatches(row: ServerRow): boolean {
+  return keywordMatches(row.game, ui.discovery.game);
+}
+
+function locationMatches(row: ServerRow): boolean {
+  if (ui.geoCountry && row.country !== ui.geoCountry) return false;
+  if (ui.geoContinent && continentFor(row.country) !== ui.geoContinent) return false;
+  return true;
 }
 
 /** Tab indices, in `TABS` order. */
@@ -216,7 +306,14 @@ function passesView(row: ServerRow): boolean {
    * Steam listing is still awaiting its first query, so it is not a skip. */
   if (ui.tab === BANNED_TAB)
     return row.banned || row.fake || (!row.verified && SKIPPED_OUTCOMES.has(row.outcome));
-  if (!passesChecks(row) || !passesSecure(row) || !mapMatches(row) || !nameMatches(row))
+  if (
+    !passesChecks(row) ||
+    !passesSecure(row) ||
+    !mapMatches(row) ||
+    !nameMatches(row) ||
+    !gameMatches(row) ||
+    !locationMatches(row)
+  )
     return false;
   /* Favorites and History keep their unmeasured rows visible: the user put
    * them there deliberately, and the game shows favourites before pinging. */
@@ -394,6 +491,10 @@ export function statusLine(): string {
 
   const map = ui.discovery.map.trim();
   if (map) parts.push(`map ${map}`);
+  const game = ui.discovery.game.trim();
+  if (game) parts.push(`game filter ${game}`);
+  if (ui.geoCountry) parts.push(`country ${ui.geoCountry}`);
+  else if (ui.geoContinent) parts.push(`continent ${ui.geoContinent}`);
 
   const latency = ui.discovery.latency;
   if (latency !== "<All>") parts.push(`latency ${latency}`);

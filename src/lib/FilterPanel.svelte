@@ -43,9 +43,12 @@
           class="fentry dd-{field.width}"
           value={store.ui.discovery[field.id]}
           aria-label={field.label}
-          placeholder={field.id === "name" ? "Contains..." : undefined}
-          maxlength={field.id === "name" ? 128 : 64}
+          placeholder={field.id === "name" || field.id === "game"
+            ? "Contains... / !ads"
+            : undefined}
+          maxlength={field.id === "name" ? 128 : field.id === "game" ? 128 : 64}
           spellcheck="false"
+          title="Comma-separated words: text includes; !text excludes (e.g. !www,!discord)"
           oninput={(e) => {
             store.ui.discovery[field.id] = e.currentTarget.value;
             store.recompute();
@@ -86,3 +89,19 @@
     </div>
   {/each}
 </div>
+
+{#if store.ui.geoCountry || store.ui.geoContinent}
+  <button class="geo-clear vbtn" onclick={() => store.clearGeoFilter()}>
+    Location: {store.ui.geoCountry ?? store.ui.geoContinent} — Clear
+  </button>
+{/if}
+
+<style>
+  .geo-clear {
+    position: absolute;
+    left: 44px;
+    bottom: 8px;
+    font-size: 18px;
+    padding: 3px 10px;
+  }
+</style>

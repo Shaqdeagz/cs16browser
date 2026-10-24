@@ -240,6 +240,15 @@ export const FIELDS = [
     text: false,
     locked: false,
   },
+  {
+    id: "game",
+    label: "Game",
+    items: [] as string[],
+    width: "game",
+    wide: false,
+    text: true,
+    locked: false,
+  },
 ] as const;
 export type FieldId = (typeof FIELDS)[number]["id"];
 
