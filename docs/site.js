@@ -1,6 +1,6 @@
 /* Progressive enhancement only: every link already works without this file.
  * It fills in the GitHub star count and, once a release exists, points the
- * download buttons straight at the Windows installer and shows its version.
+ * download buttons straight at the portable ZIP and shows its version.
  * It also opens a FAQ answer when a link points at it. */
 const repository = document.body.dataset.repository;
 
@@ -24,7 +24,7 @@ if (repository) {
   });
 
   github("/releases/latest").then((release) => {
-    const installer = (release.assets ?? []).find((asset) => /-setup\.exe$/i.test(asset.name));
+    const installer = (release.assets ?? []).find((asset) => /portable-win64\.zip$/i.test(asset.name));
     if (installer) {
       for (const link of document.querySelectorAll("[data-download]")) {
         link.href = installer.browser_download_url;

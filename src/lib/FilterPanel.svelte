@@ -99,8 +99,10 @@
 <style>
   .geo-clear {
     position: absolute;
-    left: 44px;
-    bottom: 8px;
+    left: 465px;
+    top: 135px;
+    width: 280px;
+    height: 48px;
     font-size: 18px;
     padding: 3px 10px;
   }
